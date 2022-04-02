@@ -1,18 +1,17 @@
 const userInfoService = require("../services/userInfoService");
-const bcrypt = require("bcrypt");
 // 引入 jwt
 const jwt = require("jsonwebtoken");
 // 解析 token 用的密钥
 const SECRET = "token_secret";
 
 //密码加密
-const hashPassword = (pwd) => {
-  return new Promise((resolve) => {
-    bcrypt.hash(pwd, 10, (err, hash) => {
-      resolve(hash);
-    });
-  });
-};
+// const hashPassword = (pwd) => {
+//   return new Promise((resolve) => {
+//     bcrypt.hash(pwd, 10, (err, hash) => {
+//       resolve(hash);
+//     });
+//   });
+// };
 
 /**
  * userInfoController
@@ -51,11 +50,11 @@ class userInfoController {
     if (list.length) {
       res.send({ code: 1002, message: "用户名已存在" });
     } else {
-      const passwordHash = await hashPassword(password);
+      // const passwordHash = await hashPassword(password);
       // 调用 Service 层对应的业务处理方法
       const result = await userInfoService.create({
         username,
-        password: passwordHash,
+        password,
         email,
       });
       res.send({ code: 1001, data: result });
@@ -72,12 +71,14 @@ class userInfoController {
    * @param res Express 的响应参数
    */
   async login(req, res) {
+    
     const list = await userInfoService.getUser({username: req.body.username});
-    const isPasswordValid = bcrypt.compareSync(
-      req.body.password,
-      list[0].password
-    );
-    if (!isPasswordValid) {
+    
+    // const isPasswordValid = bcrypt.compareSync(
+    //   req.body.password,
+    //   list[0].password
+    // );
+    if (!list || !list.length || req.body.password != list[0].password) {
       return res.send({
         code: 1002,
         message: "账号或密码错误",
